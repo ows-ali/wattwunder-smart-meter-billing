@@ -44,11 +44,13 @@ app.add_middleware(
 
 
 @app.get("/api/health", tags=["System"])
+@app.get("/health", include_in_schema=False)
 def health_check():
     return {"status": "ok", "service": "WattWunder Billing Service"}
 
 
 @app.post("/api/reload", tags=["System"])
+@app.post("/reload", include_in_schema=False)
 def reload_data_files():
     """Force reloads readings.csv and tariff.json from disk into SQLite."""
     from backend.app.loader import sync_data_files
@@ -58,6 +60,7 @@ def reload_data_files():
 
 
 @app.get("/api/months", response_model=AvailableMonthsResponse, tags=["Billing"])
+@app.get("/months", response_model=AvailableMonthsResponse, include_in_schema=False)
 def list_available_months():
     """List all billing months available in the smart meter records."""
     from backend.app.loader import sync_data_files
@@ -69,6 +72,7 @@ def list_available_months():
 
 
 @app.get("/api/bill", response_model=BillResponse, tags=["Billing"])
+@app.get("/bill", response_model=BillResponse, include_in_schema=False)
 def get_customer_bill(
     month: Optional[str] = Query(
         None,
@@ -91,6 +95,12 @@ def get_customer_bill(
     response_model=ReadingCreatedResponse,
     status_code=status.HTTP_201_CREATED,
     tags=["Meter Ingestion"],
+)
+@app.post(
+    "/readings",
+    response_model=ReadingCreatedResponse,
+    status_code=status.HTTP_201_CREATED,
+    include_in_schema=False,
 )
 def report_meter_readings(payload: Union[ReadingBatchCreate, ReadingCreate]):
     """
