@@ -29,3 +29,4 @@ describe('UsageChart component', () => {
     expect(screen.getByText(/Backstuben-Effekt/i)).toBeInTheDocument();
   });
 });
+

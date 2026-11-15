@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
 import { DailyUsageItem, HourlyUsageItem } from '../types';
 import { formatCurrency, formatNumber } from './BillHero';
+import { formatGermanMonth } from './Header';
 import { BarChart3, Clock, Info } from 'lucide-react';
 
 interface UsageChartProps {
   dailyData: DailyUsageItem[];
   hourlyData: HourlyUsageItem[];
+  month?: string;
 }
 
-export const UsageChart: React.FC<UsageChartProps> = ({ dailyData, hourlyData }) => {
+export const UsageChart: React.FC<UsageChartProps> = ({ dailyData, hourlyData, month }) => {
   const [viewMode, setViewMode] = useState<'daily' | 'hourly'>('daily');
   const [hoveredDay, setHoveredDay] = useState<DailyUsageItem | null>(null);
   const [hoveredHour, setHoveredHour] = useState<HourlyUsageItem | null>(null);
@@ -136,7 +138,7 @@ export const UsageChart: React.FC<UsageChartProps> = ({ dailyData, hourlyData })
           </div>
 
           <p className="text-xs text-brand-muted mt-2 text-center">
-            Tage im Monat (Oktober 2026) · Zeigen Sie mit der Maus auf einen Balken für Details
+            Tage im Monat ({month ? formatGermanMonth(month) : 'Monatsübersicht'}) · Zeigen Sie mit der Maus auf einen Balken für Details
           </p>
         </div>
       )}

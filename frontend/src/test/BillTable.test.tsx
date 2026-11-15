@@ -48,3 +48,4 @@ describe('BillTable component', () => {
     expect(screen.getByText('2.296,03 €')).toBeInTheDocument();
   });
 });
+

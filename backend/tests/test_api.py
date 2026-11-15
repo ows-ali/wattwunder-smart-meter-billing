@@ -21,6 +21,14 @@ def test_health_endpoint(client):
     assert response.json()["status"] == "ok"
 
 
+def test_reload_endpoint(client):
+    response = client.post("/api/reload")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["status"] == "ok"
+    assert "synced" in data
+
+
 def test_get_available_months(client):
     response = client.get("/api/months")
     assert response.status_code == 200

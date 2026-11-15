@@ -7,6 +7,7 @@ interface BillHeroProps {
   summary: BillSummary;
   tariff: TariffSummary;
   month: string;
+  daysCount?: number;
 }
 
 export const formatCurrency = (val: number): string => {
@@ -23,7 +24,7 @@ export const formatNumber = (val: number, decimals: number = 1): string => {
   });
 };
 
-export const BillHero: React.FC<BillHeroProps> = ({ summary, tariff, month }) => {
+export const BillHero: React.FC<BillHeroProps> = ({ summary, tariff, month, daysCount }) => {
   return (
     <div className="bg-brand-card rounded-2xl border border-brand-border p-6 sm:p-8 shadow-sm">
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 pb-6 border-b border-brand-border">
@@ -66,7 +67,7 @@ export const BillHero: React.FC<BillHeroProps> = ({ summary, tariff, month }) =>
             {formatNumber(summary.total_kwh)} <span className="text-base font-normal text-brand-muted">kWh</span>
           </div>
           <p className="text-xs text-brand-muted mt-1.5">
-            Ø {formatNumber(summary.total_kwh / 31, 1)} kWh pro Kalendertag
+            Ø {formatNumber(summary.total_kwh / (daysCount || 31), 1)} kWh pro Tag ({daysCount || 31} Tage erfasst)
           </p>
         </div>
 

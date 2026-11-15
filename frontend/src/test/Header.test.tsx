@@ -39,3 +39,4 @@ describe('Header component', () => {
     expect(handleOpenAdd).toHaveBeenCalled();
   });
 });
+

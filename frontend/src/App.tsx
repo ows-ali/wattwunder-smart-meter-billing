@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 import { BillResponse } from './types';
-import { Header } from './components/Header';
+import { Header, formatGermanMonth } from './components/Header';
 import { BillHero } from './components/BillHero';
 import { BillTable } from './components/BillTable';
 import { UsageChart } from './components/UsageChart';
 import { AddReadingModal } from './components/AddReadingModal';
-import { AlertCircle, RefreshCw, ShieldCheck } from 'lucide-react';
+import { AlertCircle, Calendar, ChevronDown, RefreshCw, RotateCw, ShieldCheck } from 'lucide-react';
 
 export function App() {
   const [billData, setBillData] = useState<BillResponse | null>(null);
@@ -21,9 +21,12 @@ export function App() {
       const res = await fetch('/api/months');
       if (!res.ok) throw new Error('Monatsliste konnte nicht geladen werden.');
       const data = await res.json();
-      setAvailableMonths(data.months || []);
-      if (data.months && data.months.length > 0 && !selectedMonth) {
-        setSelectedMonth(data.months[0]);
+      const months: string[] = data.months || [];
+      setAvailableMonths(months);
+
+      // If current selection is not in the list, set to first available
+      if (months.length > 0 && !months.includes(selectedMonth)) {
+        setSelectedMonth(months[0]);
       }
     } catch (err: any) {
       console.error(err);
@@ -44,6 +47,22 @@ export function App() {
       setBillData(data);
     } catch (err: any) {
       setError(err.message || 'Verbindung zum Abrechnungsserver fehlgeschlagen.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Force reloads readings.csv and tariff.json from disk
+  const handleReloadFiles = async () => {
+    setLoading(true);
+    try {
+      await fetch('/api/reload', { method: 'POST' });
+      await fetchMonths();
+      if (selectedMonth) {
+        await fetchBill(selectedMonth);
+      }
+    } catch (err: any) {
+      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -79,13 +98,60 @@ export function App() {
       />
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+      <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         
+        {/* Prominent Month Selector Banner */}
+        <div className="bg-brand-card rounded-2xl border border-brand-border p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 rounded-xl bg-brand-bg flex items-center justify-center border border-brand-border text-brand-navy shrink-0">
+              <Calendar className="w-5 h-5 text-brand-navy" />
+            </div>
+            <div>
+              <span className="text-xs font-semibold text-brand-muted uppercase tracking-wider block">
+                Abrechnungsmonat auswählen
+              </span>
+              <span className="text-sm font-bold text-brand-navy">
+                Aktuell gewählt: {formatGermanMonth(selectedMonth)}
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-center space-x-3">
+            <div className="relative">
+              <label htmlFor="dashboard-month-select" className="sr-only">Monat wählen</label>
+              <select
+                id="dashboard-month-select"
+                value={selectedMonth}
+                onChange={(e) => setSelectedMonth(e.target.value)}
+                className="bg-brand-bg border-2 border-brand-navy/30 hover:border-brand-navy text-brand-navy text-sm font-bold rounded-xl px-4 py-2 pr-9 appearance-none focus:outline-none focus:ring-2 focus:ring-brand-navy cursor-pointer transition-all shadow-xs"
+              >
+                {availableMonths.map((m) => (
+                  <option key={m} value={m} className="font-semibold text-brand-navy">
+                    {formatGermanMonth(m)}
+                  </option>
+                ))}
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-brand-navy">
+                <ChevronDown className="w-4 h-4" />
+              </div>
+            </div>
+
+            <button
+              onClick={handleReloadFiles}
+              title="readings.csv und tariff.json neu von der Festplatte laden"
+              className="flex items-center space-x-1.5 px-3 py-2 rounded-xl border border-brand-border bg-brand-bg text-brand-navy text-xs font-semibold hover:bg-brand-border/40 transition-colors shadow-xs"
+            >
+              <RotateCw className="w-3.5 h-3.5 text-brand-amber" />
+              <span>Dateien neu laden</span>
+            </button>
+          </div>
+        </div>
+
         {loading && (
-          <div className="flex flex-col items-center justify-center py-24 space-y-4">
+          <div className="flex flex-col items-center justify-center py-20 space-y-4">
             <RefreshCw className="w-8 h-8 text-brand-navy animate-spin" />
             <p className="text-sm font-semibold text-brand-muted">
-              Berechne Smart-Meter-Abrechnung für {selectedMonth}...
+              Berechne Smart-Meter-Abrechnung für {formatGermanMonth(selectedMonth)}...
             </p>
           </div>
         )}
@@ -112,6 +178,7 @@ export function App() {
               summary={billData.summary}
               tariff={billData.tariff}
               month={billData.month}
+              daysCount={billData.daily_breakdown.length}
             />
 
             {/* Detailed Line Items */}
@@ -124,6 +191,7 @@ export function App() {
             <UsageChart
               dailyData={billData.daily_breakdown}
               hourlyData={billData.hourly_breakdown}
+              month={billData.month}
             />
           </>
         )}
@@ -153,4 +221,3 @@ export function App() {
 }
 
 export default App;
-

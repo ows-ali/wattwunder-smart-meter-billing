@@ -45,3 +45,4 @@ describe('BillHero component', () => {
     expect(screen.getByText(/2.980 viertelstündlichen/i)).toBeInTheDocument();
   });
 });
+
