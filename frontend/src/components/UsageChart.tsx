@@ -48,7 +48,7 @@ export const UsageChart: React.FC<UsageChartProps> = ({ dailyData, hourlyData, m
             }`}
           >
             <BarChart3 className="w-3.5 h-3.5" />
-            <span>Tagesübersicht (31 Tage)</span>
+            <span>Tagesübersicht ({dailyData.length} Tage)</span>
           </button>
           <button
             type="button"
@@ -77,14 +77,18 @@ export const UsageChart: React.FC<UsageChartProps> = ({ dailyData, hourlyData, m
         </div>
       </div>
 
-      {/* DAILY VIEW CHART */}
+      {/* =========================================================================
+          DAILY VIEW (31 Days Stacked Bar Chart)
+         ========================================================================= */}
       {viewMode === 'daily' && (
         <div className="relative">
-          <div className="h-64 sm:h-72 w-full flex items-end space-x-1 sm:space-x-2 pt-6 pb-2 px-1 border-b border-brand-border">
+          {/* Chart area: exactly fixed height, items-end baseline */}
+          <div className="h-64 sm:h-72 w-full flex items-end space-x-1 sm:space-x-1.5 pt-6 pb-0 px-1 border-b border-brand-border">
             {dailyData.map((day) => {
-              const dayHeightPct = (day.day_kwh / maxDailyKwh) * 100;
-              const nightHeightPct = (day.night_kwh / maxDailyKwh) * 100;
-              const dayNum = parseInt(day.date.split('-')[2], 10);
+              const totalKwh = day.total_kwh || 0.001;
+              const totalHeightPct = Math.min(100, Math.max(3, (day.total_kwh / maxDailyKwh) * 100));
+              const dayPortionPct = (day.day_kwh / totalKwh) * 100;
+              const nightPortionPct = (day.night_kwh / totalKwh) * 100;
 
               return (
                 <div
@@ -114,24 +118,37 @@ export const UsageChart: React.FC<UsageChartProps> = ({ dailyData, hourlyData, m
                     </div>
                   )}
 
-                  {/* Stacked Bar */}
-                  <div className="w-full flex flex-col justify-end rounded-t overflow-hidden transition-all group-hover:brightness-110">
-                    {/* Day portion (top) */}
+                  {/* Stacked Bar Container */}
+                  <div
+                    style={{ height: `${totalHeightPct}%` }}
+                    className="w-full flex flex-col justify-end rounded-t overflow-hidden transition-all group-hover:brightness-110"
+                  >
+                    {/* Day portion (top - amber) */}
                     <div
-                      style={{ height: `${dayHeightPct}%` }}
-                      className="w-full bg-brand-amber transition-all duration-300"
+                      style={{ height: `${dayPortionPct}%` }}
+                      className="w-full bg-brand-amber transition-all duration-200"
                     />
-                    {/* Night portion (bottom) */}
+                    {/* Night portion (bottom - navy) */}
                     <div
-                      style={{ height: `${nightHeightPct}%` }}
-                      className="w-full bg-brand-navy transition-all duration-300"
+                      style={{ height: `${nightPortionPct}%` }}
+                      className="w-full bg-brand-navy transition-all duration-200"
                     />
                   </div>
+                </div>
+              );
+            })}
+          </div>
 
-                  {/* Day label */}
-                  <span className="text-[10px] text-brand-muted mt-1.5 font-medium">
-                    {dayNum % 2 === 1 ? dayNum : ''}
-                  </span>
+          {/* Separate X-Axis Labels row: fixed height, completely below baseline */}
+          <div className="w-full flex items-center space-x-1 sm:space-x-1.5 px-1 pt-1.5 h-6">
+            {dailyData.map((day) => {
+              const dayNum = parseInt(day.date.split('-')[2], 10);
+              return (
+                <div
+                  key={day.date}
+                  className="flex-1 text-center text-[10px] text-brand-muted font-medium"
+                >
+                  {dayNum % 2 === 1 ? dayNum : ''}
                 </div>
               );
             })}
@@ -143,12 +160,15 @@ export const UsageChart: React.FC<UsageChartProps> = ({ dailyData, hourlyData, m
         </div>
       )}
 
-      {/* HOURLY VIEW PROFILE (Bakery Ovens 03:00 - 07:00) */}
+      {/* =========================================================================
+          HOURLY VIEW (24h Typical Daily Profile)
+         ========================================================================= */}
       {viewMode === 'hourly' && (
         <div className="relative">
-          <div className="h-64 sm:h-72 w-full flex items-end space-x-1 sm:space-x-2 pt-6 pb-2 px-1 border-b border-brand-border">
+          {/* Chart area: exactly fixed height, items-end baseline */}
+          <div className="h-64 sm:h-72 w-full flex items-end space-x-1 sm:space-x-2 pt-6 pb-0 px-1 border-b border-brand-border">
             {hourlyData.map((hour) => {
-              const heightPct = (hour.total_kwh / maxHourlyKwh) * 100;
+              const heightPct = Math.min(100, Math.max(3, (hour.total_kwh / maxHourlyKwh) * 100));
               const isPeakBakingHour = hour.hour >= 3 && hour.hour < 7;
 
               return (
@@ -185,18 +205,25 @@ export const UsageChart: React.FC<UsageChartProps> = ({ dailyData, hourlyData, m
                   {/* Single bar colored by tariff */}
                   <div
                     style={{ height: `${heightPct}%` }}
-                    className={`w-full rounded-t transition-all duration-300 group-hover:brightness-110 ${
+                    className={`w-full rounded-t transition-all duration-200 group-hover:brightness-110 ${
                       hour.is_day_tariff ? 'bg-brand-amber' : 'bg-brand-navy'
                     } ${isPeakBakingHour ? 'ring-2 ring-brand-amber ring-offset-1' : ''}`}
                   />
-
-                  {/* Hour label */}
-                  <span className="text-[10px] text-brand-muted mt-1.5 font-medium">
-                    {hour.hour % 3 === 0 ? hour.label.slice(0, 2) : ''}
-                  </span>
                 </div>
               );
             })}
+          </div>
+
+          {/* Separate X-Axis Labels row: fixed height, completely below baseline */}
+          <div className="w-full flex items-center space-x-1 sm:space-x-2 px-1 pt-1.5 h-6">
+            {hourlyData.map((hour) => (
+              <div
+                key={hour.hour}
+                className="flex-1 text-center text-[10px] text-brand-muted font-medium"
+              >
+                {hour.hour % 3 === 0 ? hour.label.slice(0, 2) : ''}
+              </div>
+            ))}
           </div>
 
           {/* Bakery Storytelling Callout */}
@@ -212,4 +239,3 @@ export const UsageChart: React.FC<UsageChartProps> = ({ dailyData, hourlyData, m
     </div>
   );
 };
-

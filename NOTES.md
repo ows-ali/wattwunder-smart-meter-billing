@@ -16,7 +16,7 @@ For October 2026, the code computes a total bill of **€ 2.296,03**.
    * Interval `06:00:00` is billed as Day rate (`[06:00, 06:15)`).
    * Interval `21:45:00` is billed as Day rate (`[21:45, 22:00)`).
    * Interval `22:00:00` is billed as Night rate (`[22:00, 22:15)`).
-2. **Daylight Saving Time (DST) Transition:** October 2026 includes the European fall-back clock change on October 25 (03:00 CEST $\rightarrow$ 02:00 CET), giving October 31 days + 1 extra hour = **2.980 intervals** instead of 2.976. The repeated `02:00` to `02:45` readings both occur in the night window ($02:00 < 06:00$) and are billed at the night rate.
+2. **Daylight Saving Time (DST) Transition:** October 2026 includes the European fall-back clock change on October 25 (03:00 CEST $\rightarrow$ 02:00 CET), giving October 31 days + 1 extra hour = **2.980 15-min intervals** for a month instead of 2.976. The repeated `02:00` to `02:45` readings both occur in the night window ($02:00 < 06:00$) and are billed at the night rate.
 3. **Rounding Rules:** Unrounded energy sums and tariff prices are preserved during calculation; line-item costs are rounded to two decimal places (half-up commercial rounding), ensuring line items sum consistently to the final invoice total.
 4. **Storage Architecture:** SQLite with WAL mode. Running in-process guarantees a zero-configuration, under-5-minute evaluation without external database dependencies. The repository pattern allows swapping SQLite for PostgreSQL or TimescaleDB for multi-tenant production.
 
@@ -37,10 +37,10 @@ For October 2026, the code computes a total bill of **€ 2.296,03**.
 ## 4. AI Tools Used & Verification Strategy
 * **Tools Used:** Gemini 3.8 Flash via Antigravity for domain analysis, boilerplate, and UI styling.
 * **Verification Strategy:**
-  1. Developed standalone Python cross-verification scripts to validate interval counts, DST duplicates, and mathematical formulas independently.
-  2. Built an automated `pytest` suite testing interval boundary conditions (`05:45`, `06:00`, `21:45`, `22:00`), DST transition intervals, API contracts, and the exact October bill total.
-  3. Implemented a frontend component test suite with **Vitest** and **React Testing Library** covering German number/currency formatting, 3-row line-item calculations, chart view toggling, and user interaction.
-  4. Confirmed full TypeScript compilation with zero type errors.
+  1. **Independent Verification Scripts (`fill_tariffs_in_csv.py` & `export_with_tariffs.py`):** Created standalone verification scripts that read the raw meter readings, apply the time-of-use tariff rules from `tariff.json`, and enrich the dataset with per-interval tariff rates and euro costs. This allowed independent cross-verification of every interval and final bill total in Excel against the application output.
+  2. **Backend Automated Tests:** Built an automated `pytest` suite testing interval boundary conditions (`05:45`, `06:00`, `21:45`, `22:00`), DST transition intervals, API contracts, and the exact October bill total (€ 2.296,03).
+  3. **Frontend Component Tests:** Implemented a frontend component test suite with **Vitest** and **React Testing Library** covering German number/currency formatting, 3-row line-item calculations, chart view toggling, and user interaction.
+  4. **Type Safety:** Confirmed full TypeScript compilation with zero type errors.
 
 ---
 
