@@ -91,9 +91,6 @@ export function App() {
         customerName={billData?.customer_name || 'Bäckerei Sonnenschein'}
         accountNumber={billData?.account_number || 'WW-78492-DE'}
         meterId={billData?.meter_id || '1EMH0004928172'}
-        currentMonth={selectedMonth}
-        availableMonths={availableMonths}
-        onSelectMonth={(m) => setSelectedMonth(m)}
         onOpenAddReading={() => setIsModalOpen(true)}
       />
 

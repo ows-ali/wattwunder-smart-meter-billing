@@ -1,13 +1,10 @@
 import React from 'react';
-import { Calendar, PlusCircle } from 'lucide-react';
+import { PlusCircle } from 'lucide-react';
 
 interface HeaderProps {
   customerName: string;
   accountNumber: string;
   meterId: string;
-  currentMonth: string;
-  availableMonths: string[];
-  onSelectMonth: (month: string) => void;
   onOpenAddReading: () => void;
 }
 
@@ -26,9 +23,6 @@ export const Header: React.FC<HeaderProps> = ({
   customerName,
   accountNumber,
   meterId,
-  currentMonth,
-  availableMonths,
-  onSelectMonth,
   onOpenAddReading,
 }) => {
   return (
@@ -52,31 +46,12 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
 
-        {/* Controls: Month selector & Add reading trigger */}
-        <div className="flex items-center space-x-3 self-end md:self-auto">
-          {/* Month selector */}
-          <div className="flex items-center bg-brand-bg border border-brand-border rounded-lg px-3 py-1.5 focus-within:ring-2 focus-within:ring-brand-navy">
-            <Calendar className="w-4 h-4 text-brand-navy mr-2 shrink-0" />
-            <label htmlFor="month-select" className="sr-only">Abrechnungsmonat wählen</label>
-            <select
-              id="month-select"
-              value={currentMonth}
-              onChange={(e) => onSelectMonth(e.target.value)}
-              className="bg-transparent text-sm font-semibold text-brand-navy border-none focus:outline-none cursor-pointer"
-            >
-              {availableMonths.map((m) => (
-                <option key={m} value={m}>
-                  {formatGermanMonth(m)}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Test Endpoint Trigger */}
+        {/* Action: Add reading trigger */}
+        <div className="flex items-center self-end md:self-auto">
           <button
             onClick={onOpenAddReading}
             title="Neuen Zählerstand für Messstelle simulieren"
-            className="flex items-center space-x-1.5 bg-brand-navy text-white text-xs font-semibold px-3 py-2 rounded-lg hover:bg-opacity-90 transition-all shadow-sm"
+            className="flex items-center space-x-1.5 bg-brand-navy text-white text-xs font-semibold px-3.5 py-2 rounded-lg hover:bg-opacity-90 transition-all shadow-sm"
           >
             <PlusCircle className="w-4 h-4 text-brand-amber" />
             <span>Messwert melden</span>
@@ -87,4 +62,3 @@ export const Header: React.FC<HeaderProps> = ({
     </header>
   );
 };
-
