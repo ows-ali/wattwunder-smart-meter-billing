@@ -1,66 +1,103 @@
-# Take-home task: Smart meter billing
+# WattWunder Smart Meter Billing
 
-## The setting
+A production-quality full-stack application that computes time-of-use electricity bills from raw smart meter readings and presents an intuitive, transparent billing dashboard for commercial customers (e.g., a bakery).
 
-We are WattWunder, an electricity provider. Our customers have smart meters and a time-of-use tariff: cheaper electricity at night.
+Built with **Python (FastAPI)**, **React + TypeScript (Vite)**, and **SQLite**.
 
-One customer, say a bakery, wants to understand this month's bill: how much it is and why, without calling our support.
+---
 
-You will build the part of our system that computes the bill from the raw meter readings, and the screen the customer sees. Backend and frontend together, one repo.
+## Quick Start (Running in under 5 minutes)
 
-## What to build
+### Prerequisites
+* **Python 3.10+**
+* **Node.js 18+** & **npm** (for frontend development)
 
-1. **Bill calculation.** Read the meter data and the tariff, compute the customer's bill for the month, expose it through an API (shape and protocol are yours).
-2. **The customer's screen.** What goes on it is your decision. UI text in German, written for the customer, not for an energy engineer.
+---
 
-Backend in Python or TypeScript/JavaScript, frontend in TypeScript or JavaScript, any framework. Storage is your call; we'll ask why in the follow-up.
+### Option 1: One-Step All-in-One Runner (Fastest)
 
-Skip authentication and authorisation: assume the customer is already logged in.
+The frontend is already built into `frontend/dist/`. The FastAPI backend serves both the API and the full interactive UI from a single process:
 
-Optional, only if you have time left: an endpoint for meters to report new readings.
+1. **Install backend dependencies:**
+   ```bash
+   pip install -r backend/requirements.txt
+   ```
 
-## The data
+2. **Start the server:**
+   ```bash
+   python -m uvicorn backend.app.main:app --host 0.0.0.0 --port 8000 --reload
+   ```
 
-| File | What it is |
-| --- | --- |
-| `readings.csv` | One month of 15-minute meter readings from the customer's meter: `timestamp, energy_wh` |
-| `tariff.json` | The customer's tariff: day price 06:00–22:00, night price otherwise, both in ct/kWh, plus a fixed monthly fee in €. |
+3. **Open the browser:**
+   * **Customer Dashboard:** [http://localhost:8000](http://localhost:8000)
+   * **Interactive API Documentation (Swagger):** [http://localhost:8000/docs](http://localhost:8000/docs)
 
-## Brand
+---
 
-Use our logo `logo.svg`, the font [Figtree](https://fonts.google.com/specimen/Figtree) and our colours: `#0F2A3F` navy (primary), `#F5A623` amber (accent), `#F7F5F0` off-white (background).
+### Option 2: Full Development Mode (with Hot Reload)
 
-## Rules
+If you wish to modify frontend code with live Vite HMR:
 
-- Bill each 15-minute interval at the price valid for it.
-- If this task description doesn't answer a question, make your own decision and write it down.
-- Tests are expected.
+1. **Start the backend:**
+   ```bash
+   pip install -r backend/requirements.txt
+   python -m uvicorn backend.app.main:app --port 8000 --reload
+   ```
 
-## What you hand in
+2. **In a second terminal, start the frontend:**
+   ```bash
+   cd frontend
+   npm install
+   npm run dev
+   ```
 
-- The code, with a `README.md` that gets it running in under five minutes.
-- `NOTES.md`, one page at most. This file matters as much as the code. Include:
-  - the total your code computes for the month
-  - the decisions you made on questions this task description doesn't answer
-  - what you put on the customer's screen and what you left off
-  - which AI tools and models you used, and how you checked their output
-  - what you'd build next
+3. **Open:** [http://localhost:5173](http://localhost:5173) (Vite proxies API calls to port 8000).
 
-## What we look at
+---
 
-1. **Is the bill right.** This is the minimum.
-2. **Judgment.** The decisions in `NOTES.md`, how you checked your AI's output, and how well you explain both.
-3. **Does the customer get it.** Can the customer read the screen in 30 seconds and believe the number?
-4. **Code we'd want to live with.** Clear structure, tests that matter, no cleverness for its own sake.
-5. **The call.** Can you explain your solution and change it together with us?
+## Running the Automated Test Suite
 
-We don't score framework choice, pixel polish, or how much you built. A smaller thing done well beats a bigger thing done roughly.
+Run the full automated test suite (unit calculations, boundary conditions, DST handling, API contract):
 
-## Practicalities
+```bash
+pytest backend/tests -v
+```
 
-- **Time:** plan for 2–3 hours. Stop there, even if it's unfinished.
-- **AI:** use whatever you like. We care about judgment, not typing. Your choice of tools doesn't count for or against you.
-- **Setup:** unzip this into a new private GitHub repository of your own. When you're done, add `fex80enop`, `amorelli-enopai`, `ahmad-enopai` and `mykyta-ishchenko-enopai` as collaborators and send a short email to felix.alcala@enopai.com and raz.reichhold@enopai.com.
-- **Deadline:** within one week. If life gets in the way, say so; that's fine.
-- **Your code:** we use it only to evaluate your application.
-- **Next step:** a 60-minute call. You walk us through your solution, then we extend it together, AI allowed.
+All 9 test cases pass in under 1 second.
+
+---
+
+## Billing Calculation Summary (October 2026)
+
+* **Total Bill:** **€ 2.296,03**
+* **Total Energy:** 8.842,915 kWh (2.980 quarter-hour intervals)
+* **Tagstrom (06:00 – 22:00):** 4.562,927 kWh @ 31,847 ct/kWh = **€ 1.453,16**
+* **Nachtstrom (22:00 – 06:00):** 4.279,988 kWh @ 19,392 ct/kWh = **€ 829,98**
+* **Monatlicher Grundpreis:** **€ 12,90**
+* **Customer Value:** **48,4 %** of consumption occurred in the night tariff, saving **€ 533,07** compared to a flat day rate.
+
+*(See [NOTES.md](file:///d:/ows/proj/smart%20meter%20billing/smart-meter-billing/smart-meter-billing/NOTES.md) for full engineering rationale, DST analysis, and architecture decisions).*
+
+---
+
+## Architecture & Features
+
+### Backend (`backend/`)
+* **`app/billing.py`**: Pure domain calculations with standard 15-minute interval-start semantics ($[t, t + 15\text{min})$) and European DST handling.
+* **`app/database.py`**: SQLite database with Write-Ahead Logging (WAL) and foreign keys enabled.
+* **`app/loader.py`**: Idempotent ingestion of `readings.csv` and `tariff.json` on startup.
+* **`app/main.py`**: FastAPI REST API with endpoints:
+  * `GET /api/bill?month=YYYY-MM`: Calculates bill, summary metrics, 31-day breakdown, and 24h hourly profile.
+  * `GET /api/months`: Returns all billing months present in the database.
+  * `POST /api/readings`: Allows smart meters to report single or batch 15-minute readings into storage.
+  * `GET /api/health`: Health status.
+
+### Frontend (`frontend/`)
+* **Customer-Centric German UI**: Written in friendly, transparent language for a bakery owner.
+* **WattWunder Brand Compliance**: Exact brand colors (`#0F2A3F` navy, `#F5A623` amber, `#F7F5F0` background), Google font **Figtree**, and official `logo.svg`.
+* **Understand in 30 Seconds**:
+  * Hero banner with total invoice amount, consumption KPIs, and night tariff savings badge.
+  * Transparent 3-row line-item table (Grundpreis, Tagstrom, Nachtstrom).
+  * Interactive charts: 31-day stacked daily bar chart + 24-hour typical profile highlighting early morning oven baking hours (03:00–07:00).
+  * Month selector dropdown with dynamic month switching.
+  * Interactive **"Messwert melden"** modal to simulate live meter ingestion and watch the bill recalculate.
