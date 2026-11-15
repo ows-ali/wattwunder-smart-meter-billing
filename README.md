@@ -57,13 +57,22 @@ If you wish to modify frontend code with live Vite HMR:
 
 ## Running the Automated Test Suite
 
-Run the full automated test suite (unit calculations, boundary conditions, DST handling, API contract):
+### 1. Backend Tests (Pytest)
+Run the full automated backend test suite (unit calculations, boundary conditions, DST handling, API contract):
 
 ```bash
 pytest backend/tests -v
 ```
+*(All 9 test cases pass in under 1 second).*
 
-All 9 test cases pass in under 1 second.
+### 2. Frontend Tests (Vitest & Testing Library)
+Run the component test suite (German currency formatting, KPI rendering, 3-row line-item table, chart toggle, month selector):
+
+```bash
+cd frontend
+npm test
+```
+*(All 4 test suites and 5 tests pass).*
 
 ---
 

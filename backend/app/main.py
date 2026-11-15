@@ -48,10 +48,21 @@ def health_check():
     return {"status": "ok", "service": "WattWunder Billing Service"}
 
 
+@app.post("/api/reload", tags=["System"])
+def reload_data_files():
+    """Force reloads readings.csv and tariff.json from disk into SQLite."""
+    from backend.app.loader import sync_data_files
+    with get_db() as conn:
+        synced = sync_data_files(conn, force=True)
+    return {"status": "ok", "message": "Files reloaded successfully.", "synced": synced}
+
+
 @app.get("/api/months", response_model=AvailableMonthsResponse, tags=["Billing"])
 def list_available_months():
     """List all billing months available in the smart meter records."""
+    from backend.app.loader import sync_data_files
     with get_db() as conn:
+        sync_data_files(conn, force=False)
         months = get_available_months(conn)
     selected = months[0] if months else None
     return AvailableMonthsResponse(months=months, selected_month=selected)
@@ -68,7 +79,9 @@ def get_customer_bill(
     """
     Compute and return customer's monthly bill, tariff breakdown, and usage metrics.
     """
+    from backend.app.loader import sync_data_files
     with get_db() as conn:
+        sync_data_files(conn, force=False)
         bill_data = get_bill_for_month(conn, month)
     return bill_data
 

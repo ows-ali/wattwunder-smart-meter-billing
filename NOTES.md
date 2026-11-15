@@ -39,7 +39,8 @@ For October 2026, the code computes a total bill of **€ 2.296,03**.
 * **Verification Strategy:**
   1. Developed standalone Python cross-verification scripts to validate interval counts, DST duplicates, and mathematical formulas independently.
   2. Built an automated `pytest` suite testing interval boundary conditions (`05:45`, `06:00`, `21:45`, `22:00`), DST transition intervals, API contracts, and the exact October bill total.
-  3. Confirmed full TypeScript compilation with zero type errors.
+  3. Implemented a frontend component test suite with **Vitest** and **React Testing Library** covering German number/currency formatting, 3-row line-item calculations, chart view toggling, and user interaction.
+  4. Confirmed full TypeScript compilation with zero type errors.
 
 ---
 

@@ -55,6 +55,11 @@ def init_db(conn: sqlite3.Connection | None = None) -> None:
                 monthly_fee_eur REAL NOT NULL,
                 is_active INTEGER DEFAULT 1
             );
+
+            CREATE TABLE IF NOT EXISTS data_sync_meta (
+                file_key TEXT PRIMARY KEY,
+                last_modified REAL NOT NULL
+            );
             """
         )
         conn.commit()
